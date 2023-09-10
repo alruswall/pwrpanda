@@ -1,0 +1,71 @@
+﻿#include <Wire.h> 
+#include <LiquidCrystal.h>
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+
+//LiquidCrystal lcd(0x27, 16, 2); // I2C address and LCD dimensions
+
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
+#define DHTPIN 10       // Digital pin connected to the DHT sensor
+#define DHTTYPE DHT11 // Change to DHT22 or DHT21 if you're using a different sensor
+
+DHT dht(DHTPIN, DHTTYPE); // Initialize DHT sensor
+
+int fan = 11; // Pin connected to the fan
+int tempMin = 26; // Minimum temperature to start the fan
+int tempMax = 30; // Maximum temperature for 100% fan speed
+
+int fanSpeed;
+int fanLCD;
+ 
+void setup() {
+  pinMode(fan, OUTPUT);
+  lcd.begin(16, 2); // Initialize the LCD
+  Serial.begin(9600);
+  dht.begin(); // Initialize the DHT sensor
+}
+ 
+void loop() {
+  float temp = dht.readTemperature(); // Read temperature from DHT sensor
+
+  if (isnan(temp)) {
+    Serial.println("Failed to read from DHT sensor!");
+    delay(1000);
+    return;
+  }
+
+  Serial.print("Temperature: ");
+  Serial.println(temp);
+
+  if (temp < tempMin) {
+    fanSpeed = 0; // Fan is not spinning
+   // analogWrite(fan, fanSpeed);
+    fanLCD = 0;
+   // digitalWrite(fan, LOW);
+  }
+  else if ((temp >= tempMin) && (temp <tempMax)) {
+    //fanSpeed = map(temp, tempMin, tempMax, 0, 255);
+    fanSpeed = 50;
+    fanLCD = 50;
+   // digitalWrite(fan, fanSpeed);
+  }
+  else if (temp >= tempMax ){
+    fanSpeed =100;
+    //analogWrite(fan, fanSpeed);
+    fanLCD = 100;
+   // digitalWrite(fan, HIGH);
+  }
+ 
+  lcd.print("TEMP: ");
+  lcd.print(temp); // Display the temperature
+  lcd.print("C ");
+  lcd.setCursor(0, 1);
+  lcd.print("FANS: ");
+  lcd.print(fanLCD); // Display the fan speed
+  lcd.print("%");
+  
+  delay(2000);
+  lcd.clear();
+}
+
+
